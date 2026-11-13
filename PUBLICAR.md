@@ -1,129 +1,118 @@
 # Publicar o curso (GitHub + Vercel)
 
-O projeto já sai pronto: `index.html` autocontido, `README.md`, `LICENSE` (MIT),
-`.gitignore`, repositório Git com o commit inicial e, em `.vercel/project.json`,
-o vínculo com o projeto **curso-javascript** que já criei na sua conta Vercel.
+## Status
 
-> **Por que não publiquei direto daqui?** O conector do Vercel só aceita deploy
-> enviando o conteúdo dos arquivos pela conversa, e o `index.html` tem 266 KB —
-> acima do que é viável transmitir por esse canal (e o sandbox não tem token nem
-> CLI autenticada). O GitHub nem existe como conector nesta plataforma. Por isso
-> deixei tudo a **um comando de distância** — abaixo.
+| Onde | Situação | Link |
+|---|---|---|
+| **GitHub** | ✅ publicado (3 commits, branch `main`) | <https://github.com/brasil-01/curso-javascript> |
+| **Vercel** | ⏳ projeto `curso-javascript` criado, **deploy pendente** | — |
 
----
+O projeto Vercel existe na sua conta (`curso-javascript`, framework *Other*, sem build).
+Falta apenas o deploy — e ele não pôde ser disparado de dentro da conversa porque:
 
-## Opção 1 — um comando para tudo (recomendado)
+1. o conector do Vercel só envia arquivos pelo chat (o `index.html` tem 266 KB) e não
+   aceita o parâmetro `projectSettings` exigido no primeiro deploy;
+2. a **integração GitHub → Vercel** ainda não tem permissão sobre o repositório novo
+   (a API respondeu: *"To link a GitHub repository, you need to install the GitHub
+   integration first"*).
 
-No seu computador, dentro da pasta do projeto:
-
-```bash
-./publicar.sh
-```
-
-O script faz, em ordem:
-
-1. **GitHub** — se o [GitHub CLI](https://cli.github.com) (`gh`) estiver instalado
-   e autenticado, cria o repositório público `curso-javascript` e dá push. Sem `gh`,
-   ele imprime os 3 comandos para você fazer manualmente.
-2. **Vercel** — roda `npx vercel deploy --prod --yes`. Como o `.vercel/project.json`
-   já aponta para o projeto certo, o deploy vai direto para produção e o site fica
-   em `https://curso-javascript.vercel.app`.
-
-Pré-requisitos: `git` e Node 18+ (para o `npx`). Na primeira vez o Vercel pede login
-no navegador.
+Qualquer um dos dois caminhos abaixo resolve em menos de um minuto.
 
 ---
 
-## Opção 2 — só o Vercel (sem GitHub)
+## Caminho A — deploy automático a cada push (recomendado)
+
+**1. Dê acesso ao repositório para o app do Vercel no GitHub**
+
+<https://github.com/settings/installations> → **Vercel** → *Configure* →
+**Repository access** → *Only select repositories* → marque **curso-javascript** → *Save*.
+
+**2. Importe o repositório no Vercel**
+
+<https://vercel.com/new> → escolha `brasil-01/curso-javascript` → **Import**:
+
+- *Framework Preset*: **Other**
+- *Build Command*: vazio
+- *Output Directory*: vazio
+- *Root Directory*: `./`
+
+Clique em **Deploy**. A partir daí, todo `git push` na `main` gera um deploy de produção.
+
+> Se quiser, pode apontar esse import para o projeto que já existe (`curso-javascript`)
+> em vez de criar outro — o Vercel oferece isso na tela de import.
+
+**Depois do primeiro deploy:** o site ficará em `https://curso-javascript.vercel.app`.
+Se pedir login (Vercel Authentication), vá em projeto → **Settings** →
+**Deployment Protection** → *Vercel Authentication* → **Disabled** → *Save*.
+
+---
+
+## Caminho B — deploy pelo terminal (não precisa de GitHub)
+
+Baixe o `curso-javascript.zip`, extraia e, dentro da pasta:
 
 ```bash
 npx vercel@latest deploy --prod --yes
 ```
 
-Ou, sem instalar nada: entre em [vercel.com/new](https://vercel.com/new) →
-aba **"Deploy" / upload** → arraste esta pasta. O projeto `curso-javascript`
-já existe na sua conta e pode ser reaproveitado.
+O arquivo `.vercel/project.json` já aponta para o projeto `curso-javascript`, então o
+deploy cai direto nele. Na primeira execução o Vercel pede login no navegador.
 
-### Se o site pedir login para abrir
-
-Sua conta está com **Deployment Protection (Vercel Authentication)** ligada por
-padrão. Para o curso ser público:
-
-1. Vercel → projeto **curso-javascript** → **Settings** → **Deployment Protection**
-2. Em *Vercel Authentication*, selecione **Disabled** (ou *Only Preview Deployments*)
-3. **Save** e recarregue o site.
+> Depois, para conectar esse projeto ao Git: Vercel → **Settings** → **Git** →
+> *Connect Git Repository* → `brasil-01/curso-javascript`.
 
 ---
 
-## Opção 3 — só o GitHub
-
-**Com GitHub CLI:**
+## Referência rápida
 
 ```bash
-gh repo create curso-javascript --public --source=. --remote=origin --push
-```
+# --- Git / GitHub -------------------------------------------------
+git remote -v                      # origin → github.com/brasil-01/curso-javascript
+git push origin main               # já está tudo publicado
 
-**Sem CLI (pelo site):**
+# --- Conteúdo -----------------------------------------------------
+python3 build.py                   # regenera index.html a partir de src/ + content/
+node tools/validate.js             # roda a solução das 72 lições contra os testes
+node tools/e2e.js                  # testa no Chromium real (precisa de playwright)
 
-1. Crie o repositório em <https://github.com/new> — nome `curso-javascript`,
-   **sem** README/gitignore/license (o projeto já tem).
-2. No terminal, dentro da pasta:
+# --- Deploy -------------------------------------------------------
+npx vercel@latest deploy --prod --yes
 
-```bash
-git remote add origin git@github.com:SEU-USUARIO/curso-javascript.git
-git push -u origin main
-```
-
-**Sem terminal nenhum:** em <https://github.com/new> crie o repositório, clique em
-*"uploading an existing file"* e arraste **index.html**, **README.md**, **LICENSE**,
-**build.py**, `src/`, `content/` e `tools/`.
-
-> O commit inicial foi assinado como `Curso de JavaScript
-> <curso-javascript@users.noreply.github.com>`. Para usar a sua identidade:
-> `git commit --amend --reset-author --no-edit`.
-
----
-
-## Depois: deploy automático a cada push
-
-1. Vercel → projeto **curso-javascript** → **Settings** → **Git**
-2. **Connect Git Repository** → escolha o repositório `curso-javascript`
-3. *Framework Preset*: **Other** · *Build Command*: vazio · *Output Directory*: vazio
-
-A partir daí, cada `git push` na branch `main` gera um deploy de produção, e cada
-pull request ganha um preview próprio.
-
----
-
-## Checklist rápido
-
-```bash
-# 1. testar localmente (opcional, precisa de node)
-python3 build.py            # regenera index.html a partir de src/ e content/
-node tools/validate.js      # 72/72 lições passam nos próprios testes
-
-# 2. publicar
+# --- publicar.sh (faz git push + deploy) --------------------------
 ./publicar.sh
 ```
 
-- [ ] repositório no GitHub criado e com push feito
+## Checklist
+
+- [x] repositório público no GitHub com o código e o histórico
+- [ ] permissão do app Vercel no GitHub para `curso-javascript`
 - [ ] deploy no Vercel em estado **Ready**
-- [ ] `Deployment Protection` desligada (site público)
-- [ ] abrir `https://curso-javascript.vercel.app` e concluir a primeira lição para confirmar
-      que editor, sandbox e testes funcionam em produção
+- [ ] `Deployment Protection` desativada (site público)
+- [ ] abrir o site publicado e concluir uma lição para confirmar que editor,
+      sandbox e testes funcionam em produção
 
----
-
-## Estrutura publicada
+## Estrutura do repositório
 
 ```
 index.html          ← app final (tudo embutido: CSS, JS e as 72 lições)
 README.md           ← descrição do projeto
 LICENSE             ← MIT
-publicar.sh         ← script de publicação (GitHub + Vercel)
+PUBLICAR.md         ← este arquivo
+publicar.sh         ← script de publicação (git push + deploy Vercel)
 build.py            ← gera o index.html a partir de src/ + content/
-src/                ← styles.css e app.js (engine)
-content/            ← módulos 1–12 em arquivos Python (formato de autoria)
-tools/              ← validadores e testes automatizados
+src/                ← styles.css e app.js (engine: editor, sandbox, testes)
+content/            ← módulos 1–12 (formato de autoria em Python)
+tools/              ← validate.js, e2e.js, qa.js, qa-home.js
 .vercel/project.json← vínculo com o projeto Vercel (fora do Git, de propósito)
 ```
+
+---
+
+### Sobre o token do GitHub
+
+O token que você enviou foi usado **apenas** para criar o repositório e fazer o push,
+ficou em um arquivo temporário fora do workspace (`/tmp`, já apagado) e **não** foi
+gravado no `.git/config` nem em nenhum arquivo do projeto. Como ele foi colado em uma
+conversa, o mais seguro é **revogá-lo e gerar outro**:
+
+<https://github.com/settings/tokens> → localize o token → *Delete* → *Generate new token*.

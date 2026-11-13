@@ -69,6 +69,8 @@ xdg-open index.html      # ou dê duplo clique no arquivo
 python3 -m http.server 8000
 ```
 
+> **Repositório:** <https://github.com/brasil-01/curso-javascript>
+
 ## Publicar (Vercel + GitHub)
 
 O projeto está pronto com repositório Git, `LICENSE` (MIT) e vínculo com o projeto
