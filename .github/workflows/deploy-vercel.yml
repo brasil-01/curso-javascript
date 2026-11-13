@@ -1,0 +1,28 @@
+name: Deploy no Vercel
+
+# Dispara a cada push na main e também manualmente (Actions → Run workflow).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Vincula a pasta ao projeto "curso-javascript" já existente na conta Vercel.
+      - name: Vincular projeto Vercel
+        run: |
+          mkdir -p .vercel
+          echo '{"projectId":"prj_I6vXtN0sjTogDsM7ZeriNJdANGyW","orgId":"team_DdkkOwioAvSmbfchIC2qj7GV"}' > .vercel/project.json
+
+      - name: Deploy de produção
+        run: npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
