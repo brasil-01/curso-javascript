@@ -1,6 +1,8 @@
 name: Deploy no Vercel
 
-# Dispara a cada push na main e também manualmente (Actions → Run workflow).
+# Só faz algo quando o segredo VERCEL_TOKEN existir:
+#   repositório → Settings → Secrets and variables → Actions → New repository secret
+#   nome: VERCEL_TOKEN   valor: token criado em https://vercel.com/account/tokens
 on:
   push:
     branches: [main]
@@ -12,17 +14,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verificar se o segredo VERCEL_TOKEN existe
+        id: check
+        env:
+          TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice title=Deploy ignorado::O segredo VERCEL_TOKEN não está configurado. O site continua no GitHub Pages."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.ok == 'true'
         with:
           node-version: 20
 
-      # Vincula a pasta ao projeto "curso-javascript" já existente na conta Vercel.
-      - name: Vincular projeto Vercel
+      - name: Vincular projeto Vercel existente
+        if: steps.check.outputs.ok == 'true'
         run: |
           mkdir -p .vercel
           echo '{"projectId":"prj_I6vXtN0sjTogDsM7ZeriNJdANGyW","orgId":"team_DdkkOwioAvSmbfchIC2qj7GV"}' > .vercel/project.json
 
       - name: Deploy de produção
+        if: steps.check.outputs.ok == 'true'
         run: npx --yes vercel@latest deploy --prod --yes --token="$VERCEL_TOKEN"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
