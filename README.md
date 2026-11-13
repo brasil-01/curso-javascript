@@ -69,6 +69,18 @@ xdg-open index.html      # ou dê duplo clique no arquivo
 python3 -m http.server 8000
 ```
 
+## Publicar (Vercel + GitHub)
+
+O projeto está pronto com repositório Git, `LICENSE` (MIT) e vínculo com o projeto
+`curso-javascript` no Vercel. Para publicar:
+
+```bash
+./publicar.sh          # cria o repo no GitHub (se tiver gh) e faz deploy --prod no Vercel
+```
+
+Instruções completas, incluindo deploy pelo site, conexão GitHub↔Vercel para
+deploy automático e como desligar a proteção de acesso: **[PUBLICAR.md](PUBLICAR.md)**.
+
 ## Estrutura do projeto
 
 ```
