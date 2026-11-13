@@ -9,3 +9,6 @@ node_modules/
 *.zip
 .DS_Store
 preview-*.png
+
+# artefato gerado pelo build
+tools/course.json
