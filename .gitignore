@@ -1,0 +1,11 @@
+# dependências de teste (opcional)
+node_modules/
+
+# configuração local do Vercel (gerada por `vercel link`)
+.vercel/
+
+# artefatos
+*.log
+*.zip
+.DS_Store
+preview-*.png
