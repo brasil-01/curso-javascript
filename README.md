@@ -69,6 +69,7 @@ xdg-open index.html      # ou dê duplo clique no arquivo
 python3 -m http.server 8000
 ```
 
+> **Site:** <https://brasil-01.github.io/curso-javascript/>
 > **Repositório:** <https://github.com/brasil-01/curso-javascript>
 
 ## Publicar (Vercel + GitHub)

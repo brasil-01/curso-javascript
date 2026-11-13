@@ -4,92 +4,96 @@
 
 | Onde | Situação | Link |
 |---|---|---|
-| **GitHub** | ✅ publicado (3 commits, branch `main`) | <https://github.com/brasil-01/curso-javascript> |
-| **Vercel** | ⏳ projeto `curso-javascript` criado, **deploy pendente** | — |
+| **GitHub** | ✅ publicado (branch `main`, 7 commits) | <https://github.com/brasil-01/curso-javascript> |
+| **GitHub Pages** | ✅ **no ar e testado** | **<https://brasil-01.github.io/curso-javascript/>** |
+| **Vercel** | ⏳ projeto `curso-javascript` criado, deploy aguardando 1 passo | — |
 
-O projeto Vercel existe na sua conta (`curso-javascript`, framework *Other*, sem build).
-Falta apenas o deploy — e ele não pôde ser disparado de dentro da conversa porque:
+O app já está público pelo GitHub Pages, que serve o mesmo `index.html` do repositório
+(site estático, sem build). Verificado em Chromium contra a URL pública: 72 cards na
+home, lição `m1l1` com 2/2 testes passando, lição com DOM em `iframe sandbox="allow-scripts"`,
+progresso persistindo após reload e **zero erros de console**.
 
-1. o conector do Vercel só envia arquivos pelo chat (o `index.html` tem 266 KB) e não
-   aceita o parâmetro `projectSettings` exigido no primeiro deploy;
-2. a **integração GitHub → Vercel** ainda não tem permissão sobre o repositório novo
-   (a API respondeu: *"To link a GitHub repository, you need to install the GitHub
-   integration first"*).
+### Por que a Vercel ainda não está no ar
 
-Qualquer um dos dois caminhos abaixo resolve em menos de um minuto.
+Dois bloqueios que só existem do lado da conta/provedor:
 
----
+1. O **conector do Vercel** não expõe o parâmetro `projectSettings`, exigido no primeiro
+   deploy de um projeto — a API respondeu `400 The projectSettings object is required for
+   new projects`.
+2. A **integração GitHub → Vercel não tem permissão sobre o repositório novo** — a API
+   respondeu `To link a GitHub repository, you need to install the GitHub integration first`.
+   Um token do GitHub não autoriza o Vercel (são provedores distintos).
 
-## Caminho A — deploy automático a cada push (recomendado)
-
-**1. Dê acesso ao repositório para o app do Vercel no GitHub**
-
-<https://github.com/settings/installations> → **Vercel** → *Configure* →
-**Repository access** → *Only select repositories* → marque **curso-javascript** → *Save*.
-
-**2. Importe o repositório no Vercel**
-
-<https://vercel.com/new> → escolha `brasil-01/curso-javascript` → **Import**:
-
-- *Framework Preset*: **Other**
-- *Build Command*: vazio
-- *Output Directory*: vazio
-- *Root Directory*: `./`
-
-Clique em **Deploy**. A partir daí, todo `git push` na `main` gera um deploy de produção.
-
-> Se quiser, pode apontar esse import para o projeto que já existe (`curso-javascript`)
-> em vez de criar outro — o Vercel oferece isso na tela de import.
-
-**Depois do primeiro deploy:** o site ficará em `https://curso-javascript.vercel.app`.
-Se pedir login (Vercel Authentication), vá em projeto → **Settings** →
-**Deployment Protection** → *Vercel Authentication* → **Disabled** → *Save*.
+Qualquer um dos três caminhos abaixo resolve — o **Caminho C é o mais rápido** e não
+exige terminal nem instalar nada.
 
 ---
 
-## Caminho B — deploy pelo terminal (não precisa de GitHub)
+## Caminho A — GitHub Actions + segredo (sem terminal)
 
-Baixe o `curso-javascript.zip`, extraia e, dentro da pasta:
+O repositório já tem o workflow `.github/workflows/deploy-vercel.yml`. Ele roda a cada
+push na `main` e fica **verde sem fazer nada** enquanto o segredo não existir.
+
+1. Crie um token em <https://vercel.com/account/tokens> → *Create* → nome `deploy-curso`
+   → escopo da conta/team → copie.
+2. No GitHub: <https://github.com/brasil-01/curso-javascript/settings/secrets/actions> →
+   **New repository secret** → nome **`VERCEL_TOKEN`** → cole o token → *Add secret*.
+3. Aba **Actions** → **Deploy no Vercel** → **Run workflow**.
+
+Em ~1 minuto o deploy de produção é criado no projeto `curso-javascript`, com o domínio
+`https://curso-javascript.vercel.app`.
+
+## Caminho B — deploy automático pelo Git (mais “oficial”)
+
+1. Libere o repositório para o app do Vercel:
+   <https://github.com/settings/installations> → **Vercel** → *Configure* →
+   **Repository access** → marque **curso-javascript** → *Save*.
+2. <https://vercel.com/new> → importe `brasil-01/curso-javascript` →
+   *Framework Preset*: **Other**, *Build/Output*: vazios → **Deploy**.
+
+A partir daí cada push gera deploy de produção e cada PR ganha preview.
+
+## Caminho C — pelo terminal
 
 ```bash
 npx vercel@latest deploy --prod --yes
 ```
 
-O arquivo `.vercel/project.json` já aponta para o projeto `curso-javascript`, então o
-deploy cai direto nele. Na primeira execução o Vercel pede login no navegador.
+Dentro da pasta do projeto (o `.vercel/project.json` já aponta para `curso-javascript`,
+então o deploy cai direto nele). Na primeira vez o Vercel pede login no navegador.
 
-> Depois, para conectar esse projeto ao Git: Vercel → **Settings** → **Git** →
-> *Connect Git Repository* → `brasil-01/curso-javascript`.
+> Nos três caminhos: se o site pedir login, vá em projeto → **Settings** →
+> **Deployment Protection** → *Vercel Authentication* → **Disabled** → *Save*.
+> (Sua conta vem com essa proteção ligada por padrão.)
 
 ---
 
 ## Referência rápida
 
 ```bash
-# --- Git / GitHub -------------------------------------------------
-git remote -v                      # origin → github.com/brasil-01/curso-javascript
-git push origin main               # já está tudo publicado
-
 # --- Conteúdo -----------------------------------------------------
 python3 build.py                   # regenera index.html a partir de src/ + content/
 node tools/validate.js             # roda a solução das 72 lições contra os testes
 node tools/e2e.js                  # testa no Chromium real (precisa de playwright)
 
-# --- Deploy -------------------------------------------------------
-npx vercel@latest deploy --prod --yes
+# --- Git / GitHub -------------------------------------------------
+git remote -v                      # origin → github.com/brasil-01/curso-javascript
+git push origin main               # publica (Pages reconstrói sozinho)
 
-# --- publicar.sh (faz git push + deploy) --------------------------
-./publicar.sh
+# --- Deploy Vercel ------------------------------------------------
+npx vercel@latest deploy --prod --yes
+./publicar.sh                      # git push + deploy de produção
 ```
 
 ## Checklist
 
-- [x] repositório público no GitHub com o código e o histórico
-- [ ] permissão do app Vercel no GitHub para `curso-javascript`
+- [x] repositório público no GitHub com código e histórico
+- [x] GitHub Pages ativo servindo `index.html` (`.nojekyll` incluído)
+- [x] workflow de deploy no Vercel criado (verde, aguardando `VERCEL_TOKEN`)
+- [ ] `VERCEL_TOKEN` configurado nos segredos do repositório
 - [ ] deploy no Vercel em estado **Ready**
 - [ ] `Deployment Protection` desativada (site público)
-- [ ] abrir o site publicado e concluir uma lição para confirmar que editor,
-      sandbox e testes funcionam em produção
+- [ ] abrir a URL e concluir uma lição para confirmar editor, sandbox e testes
 
 ## Estrutura do repositório
 
@@ -103,6 +107,7 @@ build.py            ← gera o index.html a partir de src/ + content/
 src/                ← styles.css e app.js (engine: editor, sandbox, testes)
 content/            ← módulos 1–12 (formato de autoria em Python)
 tools/              ← validate.js, e2e.js, qa.js, qa-home.js
+.github/workflows/  ← deploy-vercel.yml
 .vercel/project.json← vínculo com o projeto Vercel (fora do Git, de propósito)
 ```
 
@@ -110,9 +115,7 @@ tools/              ← validate.js, e2e.js, qa.js, qa-home.js
 
 ### Sobre o token do GitHub
 
-O token que você enviou foi usado **apenas** para criar o repositório e fazer o push,
-ficou em um arquivo temporário fora do workspace (`/tmp`, já apagado) e **não** foi
-gravado no `.git/config` nem em nenhum arquivo do projeto. Como ele foi colado em uma
-conversa, o mais seguro é **revogá-lo e gerar outro**:
-
-<https://github.com/settings/tokens> → localize o token → *Delete* → *Generate new token*.
+Os tokens enviados foram usados **apenas** para criar o repositório, dar push e ativar o
+Pages. Ficaram em arquivo temporário fora do workspace (`/tmp`, já apagado) e **não** foram
+gravados no `.git/config` nem em nenhum arquivo do projeto. Como foram colados em uma
+conversa, revogue-os e gere outro: <https://github.com/settings/tokens>.
